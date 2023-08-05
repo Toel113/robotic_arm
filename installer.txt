@@ -1,0 +1,15 @@
+conda create -n object_detection python=3.7
+conda activate object_detection
+
+conda install -c anaconda protobuf
+conda install -c anaconda pillow
+conda install -c anaconda lxml
+conda install -c anaconda jupyter
+conda install -c conda-forge matplotlib
+
+conda install tensorflow
+
+git clone https://github.com/tensorflow/models.git
+
+cd models/research
+protoc object_detection/protos/*.proto --python_out=.
