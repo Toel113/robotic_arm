@@ -11,6 +11,7 @@ count_print = 0
 rz = 0
 start = input("enter for start program")
 
+
 CLASSES = ["BACKGROUND", "AEROPLANE", "BICYCLE", "BIRD", "BOAT",
            "BOTTLE", "BUS", "CAR", "CAT", "CHAIR", "COW", "DININGTABLE",
            "DOG", "HORSE", "MOTORBIKE", "PERSON", "POTTEDPLANT", "SHEEP",
@@ -24,14 +25,13 @@ config = rs.config()
 
 rs_w = 640
 rs_h = 480
-fps = 30
+fps = 60
 
 config.enable_stream(rs.stream.depth, rs_w, rs_h, rs.format.z16, fps)
 config.enable_stream(rs.stream.color, rs_w, rs_h, rs.format.bgr8, fps)
 pipeline.start(config)
 
 cap = cv2.VideoCapture(2)
-
 
 def connect_robot():
     try:
@@ -49,6 +49,14 @@ def connect_robot():
         print("Connection failed.")
         raise e
 
+
+def run_point_MOVL(move: DobotApiMove, point_list: list):
+    # MovL(self, x, y, z, rx, ry, rz):
+    move.MovL(point_list[0], point_list[1], point_list[2], point_list[3], point_list[4], point_list[5])
+
+def run_point_MOVJ(move: DobotApiMove, point_list: list):
+    # MovJ(self, x, y, z, rx, ry, rz):
+    move.MovJ(point_list[0], point_list[1], point_list[2], point_list[3], point_list[4], point_list[5])
 
 def get_feed(feed: DobotApi):
     global current_actual
@@ -101,45 +109,34 @@ def wait_arrive(point_list):
         is_arrive = True
         if current_actual is not None:
             for index in range(len(current_actual)):
-                if abs(current_actual[index] - point_list[index]) > 1:
+                if (abs(current_actual[index] - point_list[index]) > 1):
                     is_arrive = False
             if is_arrive:
                 return
         sleep(0.001)
 
 
-def run_point_MOVL(move: DobotApiMove, point_list: list):
-    # MovL(self, x, y, z, rx, ry, rz):
-    move.MovL(point_list[0], point_list[1], point_list[2], point_list[3], point_list[4], point_list[5])
-
-
-def run_point_MOVJ(move: DobotApiMove, point_list: list):
-    # MovJ(self, x, y, z, rx, ry, rz):
-    move.MovJ(point_list[0], point_list[1], point_list[2], point_list[3], point_list[4], point_list[5])
-
-
 def open_gipper100():
     dashboard.ToolDO(1, 0)
     dashboard.ToolDO(2, 0)
 
+def open_gipper20():
+    dashboard.ToolDO(1, 0)
+    dashboard.ToolDO(2, 1)
 
 def open_gipper80():
     dashboard.ToolDO(1, 1)
     dashboard.ToolDO(2, 0)
 
 
-def open_gipper20():
-    dashboard.ToolDO(1, 0)
-    dashboard.ToolDO(2, 1)
-
-
-def run_MOVRz():
+def run_point_MOVRz():
+    global current_actual
     global rz
     if 0 <= rz <= 175:
         rz += 2
 
-    elif rz > 176:
-        rz == 0
+    else:
+        return
 
     point_RZ_Tool1 = [-12.2107, -620.8519, 529.2833, -174.1636, -3.5641, rz]
     run_point_MOVL(move, point_RZ_Tool1)
@@ -203,61 +200,35 @@ if __name__ == '__main__':
                         y = startY - 15 if startY - 15 > 15 else startY + 15
                         cv2.putText(frame, label, (startX + 20, y + 5), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
 
-                        x_robot = (startX - 285)
-                        y_robot = (startY - 640)
-                        point = [x_robot, y_robot, 365, 178, 0, 0]
                         print("--------------------------------")
                         print("ROBOT")
-                        print("x: ", x_robot)
-                        print("y: ", y_robot)
-                        print("Point : ", point)
-
+                        x_robot = (startY - 534)
+                        y_robot = (startX - 721)
+                        print("x", x_robot)
+                        print("y", y_robot)
                         point_home = [-251, -596, 390, -177, 2, 128]
-                        point_drop = [-236, -482, 380, 178, 0, 0]
-                        point_up = [-92, -482, 470, 178, 0, 0]
-                        point1 = [-97.5546, -402.9117, 382.9496, 175.2343, -2.9592, 0.3741]
-                        # point1 = [x_robot, y_robot, 390, -177, 2, 128]
+                        point1 = [x_robot, y_robot, 390, -177, 2, 128]
                         point_x1 = [-3.9633, -652.7772, 465.0585, 178.7859, 250093, 146.8466]
                         print(point1)
-                        print(point_x1)
-                        print(point_home)
 
-                        if CLASSES[class_index] == 'BOTTLE':
-                            run_point_MOVJ(move, point)
-                            #wait_arrive(point)
-                            sleep(3)
-                            open_gipper20()
-                            sleep(3)
-                            run_point_MOVJ(move, point_up)
-                            #wait_arrive(point_up)
-                            sleep(3)
-                            run_point_MOVJ(move, point_drop)
-                            #wait_arrive(point_drop)
-                            sleep(3)
-                            open_gipper100()
-                            sleep(3)
-
-                        # run_point_MOVL(move, point1)
-                        # # wait_arrive(point1)
-                        # print("ถึงตำแหน่งปัจจุบัน point1")
-                        # # open_gipper80()
-                        # # sleep(1)
-                        # print("เปิด gipper 80%")
-                        # run_point_MOVL(move, point_x1)
-                        # # wait_arrive(point_x1)
-                        # print("ถึงตำแหน่ง point_x1")
-                        # # open_gipper100()
-                        # # sleep(1)
-                        # print("เปิด gipper 100%")
-                        # run_point_MOVL(move, point_home)
-                        # # wait_arrive(point_home)
+                # run_point_MOVL(move, point1)
+                # wait_arrive(point1)
+                # sleep(1)
+                # open_gipper80()
+                # sleep(1)
+                run_point_MOVL(move, point_x1)
+                wait_arrive(point_x1)
+                # sleep(1)
+                # open_gipper100()
+                # sleep(1)
+                # run_point_MOVL(move, point_home)
+                # wait_arrive(point_home)
 
             cv2.imshow("Frame", frame)
             if cv2.waitKey(100) & 0xFF == ord('q'):
                 break
-
-
     except KeyboardInterrupt:
         dashboard.DisableRobot()
+        print(exception)
         print("Clear error.")
         dashboard.ClearError()
